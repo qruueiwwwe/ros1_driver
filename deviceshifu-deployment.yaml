@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: deviceshifu-driver
+  namespace: devices
+spec:
+  serviceName: deviceshifu-driver
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deviceshifu-driver
+  template:
+    metadata:
+      labels:
+        app: deviceshifu-driver
+    spec:
+      nodeSelector:
+        cpu: arm
+      containers:
+      - name: deviceshifu-driver
+        image: localhost:5000/deviceshifu-driver:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 11311  # ROS master port
+        env:
+        - name: ROS_MASTER_URI
+          value: "http://$(HOST_IP):11311"
+        - name: ROS_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        volumeMounts:
+        - name: config-volume
+          mountPath: /catkin_ws/src/config
+      volumes:
+      - name: config-volume
+        configMap:
+          name: deviceshifu-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deviceshifu-driver
+  namespace: devices
+spec:
+  selector:
+    app: deviceshifu-driver
+  ports:
+  - port: 11311
+    targetPort: 11311
+  type: ClusterIP 
