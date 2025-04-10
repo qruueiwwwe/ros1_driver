@@ -20,4 +20,4 @@ ENV PYTHONPATH=/catkin_ws/devel/lib/python3/dist-packages:$PYTHONPATH
 ENV LD_LIBRARY_PATH=/catkin_ws/devel/lib:$LD_LIBRARY_PATH
 
 # 设置入口点
-ENTRYPOINT ["/bin/bash", "-c", "source /opt/ros/noetic/setup.bash && source /catkin_ws/devel/setup.bash && rosrun deviceshifu_driver driver_node.py"] 
+ENTRYPOINT ["/bin/bash", "-c", "source /opt/ros/noetic/setup.bash && source /catkin_ws/devel/setup.bash && roslaunch deviceshifu_driver deviceshifu_driver.launch"] 

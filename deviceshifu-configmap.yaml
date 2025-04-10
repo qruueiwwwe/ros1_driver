@@ -6,9 +6,9 @@ metadata:
 data:
   driver_config.yaml: |
     # DeviceShifu Driver Node Configuration
-    driver_node_ros1:
+    deviceshifu_driver:
       # Speed Parameters
-      linear_speed: 0.5  # Linear velocity (m/s)
+      linear_speed: 0.2  # Linear velocity (m/s)
       angular_speed: 0.2  # Angular velocity (rad/s)
       
       # Camera Parameters

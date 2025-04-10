@@ -18,7 +18,7 @@ spec:
         cpu: arm
       containers:
       - name: deviceshifu-driver
-        image: 192.168.31.115:5000/deviceshifu-driver:latest
+        image: localhost:5000/deviceshifu-driver:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 11311  # ROS master port
@@ -31,7 +31,7 @@ spec:
               fieldPath: status.podIP
         volumeMounts:
         - name: config-volume
-          mountPath: /catkin_ws/src/config
+          mountPath: /catkin_ws/src/deviceshifu_driver/config
       volumes:
       - name: config-volume
         configMap:
