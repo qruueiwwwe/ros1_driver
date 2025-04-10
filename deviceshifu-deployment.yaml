@@ -18,8 +18,8 @@ spec:
         cpu: arm
       containers:
       - name: deviceshifu-driver
-        image: 192.168.31.101:5000/deviceshifu-driver:latest
-        imagePullPolicy: Always
+        image: deviceshifu-driver:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 11311  # ROS master port
         env:
