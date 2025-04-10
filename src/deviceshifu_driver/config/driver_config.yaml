@@ -10,4 +10,4 @@ driver_node_ros1:
   camera_height: 480  # Image height
   
   # Simulation Image Parameters
-  sim_image_color: [187, 197, 57]  # BGR format of #39c5bb 
+  sim_image_color: [187, 197, 57]  # BGR format of #39c5bb  DeviceShifu Driver Node Configuration
