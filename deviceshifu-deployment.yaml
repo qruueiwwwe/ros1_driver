@@ -24,8 +24,12 @@ spec:
         - containerPort: 11311  # ROS master port
         env:
         - name: ROS_MASTER_URI
-          value: "http://$(HOST_IP):11311"
+          value: "http://$(POD_IP):11311"
         - name: ROS_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_IP
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
