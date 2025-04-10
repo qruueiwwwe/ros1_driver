@@ -20,8 +20,11 @@ class DeviceShifuDriver:
         self.angular_speed = rospy.get_param('~angular_speed', 0.2)
         self.camera_fps = rospy.get_param('~camera_fps', 30)
         
+        rospy.loginfo(f'Initialized with speeds - Linear: {self.linear_speed}, Angular: {self.angular_speed}')
+        
         # Create publishers
-        self.cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
+        # 尝试使用官方驱动的话题名称
+        self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
         self.image_pub = rospy.Publisher('camera/image', Image, queue_size=10)
         
         # Create subscriber - for receiving control commands
@@ -108,6 +111,14 @@ class DeviceShifuDriver:
             
         cmd = Twist()
         
+        # 确保所有字段都被正确设置
+        cmd.linear.x = 0.0
+        cmd.linear.y = 0.0
+        cmd.linear.z = 0.0
+        cmd.angular.x = 0.0
+        cmd.angular.y = 0.0
+        cmd.angular.z = 0.0
+        
         if self.current_command == 0:    # Stop
             cmd.linear.x = 0.0
             cmd.angular.z = 0.0
@@ -117,20 +128,25 @@ class DeviceShifuDriver:
         elif self.current_command == 1:  # Forward
             cmd.linear.x = self.linear_speed
             cmd.angular.z = 0.0
+            rospy.loginfo(f'Moving forward with speed: {self.linear_speed}')
         elif self.current_command == 2:  # Backward
             cmd.linear.x = -self.linear_speed
             cmd.angular.z = 0.0
+            rospy.loginfo(f'Moving backward with speed: {self.linear_speed}')
         elif self.current_command == 3:  # Turn left
             cmd.linear.x = 0.0
             cmd.angular.z = self.angular_speed
+            rospy.loginfo(f'Turning left with speed: {self.angular_speed}')
         elif self.current_command == 4:  # Turn right
             cmd.linear.x = 0.0
             cmd.angular.z = -self.angular_speed
+            rospy.loginfo(f'Turning right with speed: {self.angular_speed}')
         else:
             rospy.logwarn(f'Unknown command: {self.current_command}')
             return
             
         self.cmd_vel_pub.publish(cmd)
+        rospy.logdebug(f'Published cmd_vel - linear: {cmd.linear.x}, angular: {cmd.angular.z}')
 
     def run(self):
         """Run node"""
