@@ -18,7 +18,7 @@ spec:
         cpu: arm
       containers:
       - name: deviceshifu-driver
-        image: host.docker.internal:5000/deviceshifu-driver:latest
+        image: 192.168.31.115:5000/deviceshifu-driver:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 11311  # ROS master port
