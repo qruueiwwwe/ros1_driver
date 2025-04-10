@@ -18,18 +18,14 @@ spec:
         cpu: arm
       containers:
       - name: deviceshifu-driver
-        image: deviceshifu-driver:latest
-        imagePullPolicy: Never
+        image: deviceshifu-driver:latest  # 移除仓库前缀
+        imagePullPolicy: IfNotPresent     # 允许使用本地镜像
         ports:
         - containerPort: 11311  # ROS master port
         env:
         - name: ROS_MASTER_URI
           value: "http://$(POD_IP):11311"
         - name: ROS_IP
-          valueFrom:
-            fieldRef:
-              fieldPath: status.podIP
-        - name: POD_IP
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
