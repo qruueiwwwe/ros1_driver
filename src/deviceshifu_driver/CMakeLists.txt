@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(deviceshifu_driver)
+project(ros1_driver)
+
+find_package(catkin REQUIRED)
+
+catkin_workspace()
 
 find_package(catkin REQUIRED COMPONENTS
   rospy
