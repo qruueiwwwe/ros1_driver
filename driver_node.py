@@ -36,6 +36,11 @@ class DeviceShifuDriver:
         # Create rate for publishing images
         self.rate = rospy.Rate(self.camera_fps)
         
+        # Initialize movement state
+        self.current_command = 0  # 0: stop, 1: forward, 2: backward, 3: left, 4: right
+        self.is_moving = False
+        self.movement_timer = None
+        
         rospy.loginfo('DeviceShifu driver initialized')
 
     def init_camera(self):
@@ -84,30 +89,45 @@ class DeviceShifuDriver:
 
     def command_callback(self, msg):
         """Process control commands"""
+        self.current_command = msg.data
+        self.is_moving = True
+        
+        # Cancel existing timer if any
+        if self.movement_timer:
+            self.movement_timer.shutdown()
+        
+        # Create new timer for continuous movement
+        self.movement_timer = rospy.Timer(rospy.Duration(0.1), self.movement_callback)
+        
+        rospy.loginfo(f'Received command: {msg.data}')
+
+    def movement_callback(self, event):
+        """Handle continuous movement"""
+        if not self.is_moving:
+            return
+            
         cmd = Twist()
         
-        if msg.data == 0:    # Stop
+        if self.current_command == 0:    # Stop
             cmd.linear.x = 0.0
             cmd.angular.z = 0.0
-            rospy.loginfo('Executing stop command')
-        elif msg.data == 1:  # Forward
+            self.is_moving = False
+            self.movement_timer.shutdown()
+            rospy.loginfo('Stopping movement')
+        elif self.current_command == 1:  # Forward
             cmd.linear.x = self.linear_speed
             cmd.angular.z = 0.0
-            rospy.loginfo('Executing forward command')
-        elif msg.data == 2:  # Backward
+        elif self.current_command == 2:  # Backward
             cmd.linear.x = -self.linear_speed
             cmd.angular.z = 0.0
-            rospy.loginfo('Executing backward command')
-        elif msg.data == 3:  # Turn left
+        elif self.current_command == 3:  # Turn left
             cmd.linear.x = 0.0
             cmd.angular.z = self.angular_speed
-            rospy.loginfo('Executing turn left command')
-        elif msg.data == 4:  # Turn right
+        elif self.current_command == 4:  # Turn right
             cmd.linear.x = 0.0
             cmd.angular.z = -self.angular_speed
-            rospy.loginfo('Executing turn right command')
         else:
-            rospy.logwarn(f'Unknown command: {msg.data}')
+            rospy.logwarn(f'Unknown command: {self.current_command}')
             return
             
         self.cmd_vel_pub.publish(cmd)
@@ -123,6 +143,8 @@ class DeviceShifuDriver:
         finally:
             if self.has_camera and self.cap is not None:
                 self.cap.release()
+            if self.movement_timer:
+                self.movement_timer.shutdown()
 
 def main():
     try:
