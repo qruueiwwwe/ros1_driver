@@ -23,7 +23,7 @@ class DeviceShifuDriver:
         rospy.loginfo(f'Initialized with speeds - Linear: {self.linear_speed}, Angular: {self.angular_speed}')
         
         # Create publishers
-        # 尝试使用官方驱动的话题名称
+        # 使用与官方驱动相同的话题名称
         self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
         self.image_pub = rospy.Publisher('camera/image', Image, queue_size=10)
         
