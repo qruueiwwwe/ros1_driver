@@ -9,7 +9,6 @@ import cv2
 import numpy as np
 from cv_bridge import CvBridge
 import time
-import serial
 
 class DeviceShifuDriver:
     def __init__(self):
@@ -37,9 +36,6 @@ class DeviceShifuDriver:
         # Initialize camera
         self.init_camera()
         
-        # Initialize serial port for direct control
-        self.init_serial()
-        
         # Create rate for publishing images
         self.rate = rospy.Rate(self.camera_fps)
         
@@ -64,47 +60,6 @@ class DeviceShifuDriver:
             rospy.loginfo('Using simulated image')
             self.has_camera = False
             self.cap = None
-
-    def init_serial(self):
-        """Initialize serial port for direct control"""
-        try:
-            self.ser = serial.Serial(
-                port='/dev/ttyUSB0',  # 根据实际串口设备修改
-                baudrate=115200,
-                timeout=1
-            )
-            rospy.loginfo('Successfully connected to serial port')
-            self.has_serial = True
-        except Exception as e:
-            rospy.logwarn(f'Serial port initialization failed: {str(e)}')
-            self.has_serial = False
-            self.ser = None
-
-    def send_control_command(self, cmd):
-        """Send control command directly to the robot"""
-        if not self.has_serial:
-            return
-            
-        try:
-            # 根据命令生成控制指令
-            if cmd == 0:    # Stop
-                command = "STOP\n"
-            elif cmd == 1:  # Forward
-                command = f"FORWARD {self.linear_speed}\n"
-            elif cmd == 2:  # Backward
-                command = f"BACKWARD {self.linear_speed}\n"
-            elif cmd == 3:  # Turn left
-                command = f"LEFT {self.angular_speed}\n"
-            elif cmd == 4:  # Turn right
-                command = f"RIGHT {self.angular_speed}\n"
-            else:
-                return
-                
-            # 发送命令
-            self.ser.write(command.encode())
-            rospy.loginfo(f'Sent command: {command.strip()}')
-        except Exception as e:
-            rospy.logerr(f'Failed to send command: {str(e)}')
 
     def publish_image(self):
         """Publish image data"""
@@ -147,9 +102,6 @@ class DeviceShifuDriver:
         # Create new timer for continuous movement
         self.movement_timer = rospy.Timer(rospy.Duration(0.1), self.movement_callback)
         
-        # Send command directly to the robot
-        self.send_control_command(self.current_command)
-        
         rospy.loginfo(f'Received command: {msg.data}')
 
     def movement_callback(self, event):
@@ -157,11 +109,9 @@ class DeviceShifuDriver:
         if not self.is_moving:
             return
             
-        # Send command directly to the robot
-        self.send_control_command(self.current_command)
-        
-        # Also publish to cmd_vel for compatibility
         cmd = Twist()
+        
+        # 确保所有字段都被正确设置
         cmd.linear.x = 0.0
         cmd.linear.y = 0.0
         cmd.linear.z = 0.0
@@ -209,8 +159,6 @@ class DeviceShifuDriver:
         finally:
             if self.has_camera and self.cap is not None:
                 self.cap.release()
-            if self.has_serial and self.ser is not None:
-                self.ser.close()
             if self.movement_timer:
                 self.movement_timer.shutdown()
 

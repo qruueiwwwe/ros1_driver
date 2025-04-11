@@ -25,4 +25,4 @@ ENV LD_LIBRARY_PATH=/catkin_ws/devel/lib:$LD_LIBRARY_PATH
 ENV ROS_PACKAGE_PATH=/opt/ros/noetic/share:/catkin_ws/src:$ROS_PACKAGE_PATH
 
 # 设置入口点
-ENTRYPOINT ["/bin/bash", "-c", "source /opt/ros/noetic/setup.bash && source /catkin_ws/devel/setup.bash && roslaunch deviceshifu_driver deviceshifu_driver.launch enable_wheeltec:=true"] 
+ENTRYPOINT ["/bin/bash", "-c", "source /opt/ros/noetic/setup.bash && source /catkin_ws/devel/setup.bash && roslaunch deviceshifu_driver deviceshifu_driver.launch"] 
