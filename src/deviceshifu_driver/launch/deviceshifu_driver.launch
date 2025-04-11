@@ -2,6 +2,14 @@
   <!-- 加载参数文件 -->
   <rosparam command="load" file="$(find deviceshifu_driver)/config/driver_config.yaml" />
   
+  <!-- 是否启动小车底层驱动的参数 -->
+  <arg name="enable_wheeltec" default="false" />
+  
+  <!-- 条件启动小车底层驱动 -->
+  <group if="$(arg enable_wheeltec)">
+    <include file="$(find turn_on_wheeltec_robot)/launch/turn_on_wheeltec_robot.launch" />
+  </group>
+  
   <!-- 启动驱动节点 -->
   <node name="deviceshifu_driver" pkg="deviceshifu_driver" type="driver_node.py" output="screen">
     <!-- 覆盖参数 -->
