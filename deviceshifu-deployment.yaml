@@ -21,17 +21,13 @@ spec:
         image: deviceshifu-driver:latest
         imagePullPolicy: Never
         securityContext:
-          privileged: true
+          privileged: true  # 特权模式访问硬件
         ports:
         - containerPort: 11311
         env:
-        - name: ROS_MASTER_URI
+        - name: ROS_MASTER_URI  # 唯一保留的 ROS_MASTER_URI
           value: "http://192.168.31.101:11311"
         - name: ROS_IP
-          valueFrom:
-            fieldRef:
-              fieldPath: status.podIP
-        - name: POD_IP
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
@@ -39,23 +35,24 @@ spec:
           value: "/opt/ros/noetic/lib/python3/dist-packages"
         - name: LD_LIBRARY_PATH
           value: "/opt/ros/noetic/lib"
-        - name: PATH
-          value: "/opt/ros/noetic/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
         - name: ROS_ROOT
           value: "/opt/ros/noetic/share/ros"
         - name: ROS_PACKAGE_PATH
           value: "/opt/ros/noetic/share"
-        - name: ROS_MASTER_URI
-          value: "http://192.168.31.101:11311"
         - name: ROS_DISTRO
           value: "noetic"
         volumeMounts:
         - name: config-volume
           mountPath: /catkin_ws/src/deviceshifu_driver/config
+        - mountPath: /dev  # 新增硬件设备挂载
+          name: dev-volume
       volumes:
       - name: config-volume
         configMap:
           name: deviceshifu-config
+      - name: dev-volume  # 新增设备卷
+        hostPath:
+          path: /dev
 ---
 apiVersion: v1
 kind: Service
@@ -68,4 +65,4 @@ spec:
   ports:
   - port: 11311
     targetPort: 11311
-  type: ClusterIP 
+  type: ClusterIP
