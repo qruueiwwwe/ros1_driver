@@ -5,8 +5,10 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-opencv \
     ros-noetic-cv-bridge \
-    ros-noetic-turn-on-wheeltec-robot \
     && rm -rf /var/lib/apt/lists/*
+
+# 安装Python依赖
+RUN pip3 install pyserial
 
 # 创建工作空间
 WORKDIR /catkin_ws/src

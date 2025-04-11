@@ -45,17 +45,22 @@ spec:
           value: "/opt/ros/noetic/share/ros"
         - name: ROS_PACKAGE_PATH
           value: "/opt/ros/noetic/share"
-        - name: ROS_MASTER_URI
-          value: "http://192.168.31.101:11311"
         - name: ROS_DISTRO
           value: "noetic"
         volumeMounts:
         - name: config-volume
           mountPath: /catkin_ws/src/deviceshifu_driver/config
+        - name: serial-device
+          mountPath: /dev/ttyUSB0
+          subPath: ttyUSB0
       volumes:
       - name: config-volume
         configMap:
           name: deviceshifu-config
+      - name: serial-device
+        hostPath:
+          path: /dev/ttyUSB0
+          type: Device
 ---
 apiVersion: v1
 kind: Service
