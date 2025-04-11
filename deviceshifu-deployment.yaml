@@ -24,7 +24,7 @@ spec:
         - containerPort: 11311  # ROS master port
         env:
         - name: ROS_MASTER_URI
-          value: "http://$(POD_IP):11311"
+          value: "http://192.168.31.101:11311"
         - name: ROS_IP
           valueFrom:
             fieldRef:
