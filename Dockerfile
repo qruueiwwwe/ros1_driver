@@ -4,6 +4,7 @@ FROM ros:noetic
 RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-opencv \
+    curl \
     ros-noetic-cv-bridge \
     && rm -rf /var/lib/apt/lists/*
 
