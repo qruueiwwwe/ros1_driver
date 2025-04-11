@@ -33,6 +33,12 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
+        - name: PYTHONPATH
+          value: "/opt/ros/noetic/lib/python3/dist-packages"
+        - name: LD_LIBRARY_PATH
+          value: "/opt/ros/noetic/lib"
+        - name: PATH
+          value: "/opt/ros/noetic/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
         volumeMounts:
         - name: config-volume
           mountPath: /catkin_ws/src/deviceshifu_driver/config
