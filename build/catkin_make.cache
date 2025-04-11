@@ -1,0 +1,2 @@
+deviceshifu_driver
+-DCATKIN_DEVEL_PREFIX=/home/wheeltec/driver/ros1_driver/devel -DCMAKE_INSTALL_PREFIX=/home/wheeltec/driver/ros1_driver/install -G Unix Makefiles

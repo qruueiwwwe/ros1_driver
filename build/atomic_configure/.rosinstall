@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/wheeltec/driver/ros1_driver/devel/setup.sh
