@@ -29,6 +29,10 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
         volumeMounts:
         - name: config-volume
           mountPath: /catkin_ws/src/deviceshifu_driver/config
