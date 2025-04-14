@@ -49,10 +49,22 @@ spec:
         volumeMounts:
         - name: config-volume
           mountPath: /catkin_ws/src/deviceshifu_driver/config
+        - name: tty-acm0
+          mountPath: /dev/ttyACM0
+        - name: tty-acm1
+          mountPath: /dev/ttyACM1
       volumes:
       - name: config-volume
         configMap:
           name: deviceshifu-config
+      - name: tty-acm0
+        hostPath:
+          path: /dev/ttyACM0
+          type: Socket
+      - name: tty-acm1
+        hostPath:
+          path: /dev/ttyACM1
+          type: Socket
 ---
 apiVersion: v1
 kind: Service
@@ -70,3 +82,4 @@ spec:
     targetPort: 11312
     name: ros-slave
   type: NodePort  # 改为NodePort类型，使外部可以访问 
+
