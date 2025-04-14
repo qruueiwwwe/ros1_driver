@@ -3,12 +3,10 @@
 
 import rospy
 from geometry_msgs.msg import Twist
-from sensor_msgs.msg import Image
 from std_msgs.msg import Int32
-import cv2
-import numpy as np
-from cv_bridge import CvBridge
 import time
+from flask import Flask, request, jsonify
+import threading
 
 class DeviceShifuDriver:
     def __init__(self):
@@ -18,91 +16,72 @@ class DeviceShifuDriver:
         # Initialize parameters
         self.linear_speed = rospy.get_param('~linear_speed', 0.5)
         self.angular_speed = rospy.get_param('~angular_speed', 0.2)
-        self.camera_fps = rospy.get_param('~camera_fps', 30)
+        self.http_port = rospy.get_param('~http_port', 5000)
         
         rospy.loginfo(f'Initialized with speeds - Linear: {self.linear_speed}, Angular: {self.angular_speed}')
         
         # Create publishers
-        # 使用与官方驱动相同的话题名称
         self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
-        self.image_pub = rospy.Publisher('camera/image', Image, queue_size=10)
-        
-        # Create subscriber - for receiving control commands
-        self.command_sub = rospy.Subscriber('remote_command', Int32, self.command_callback)
-            
-        # Initialize CvBridge
-        self.bridge = CvBridge()
-        
-        # Initialize camera
-        self.init_camera()
-        
-        # Create rate for publishing images
-        self.rate = rospy.Rate(self.camera_fps)
         
         # Initialize movement state
         self.current_command = 0  # 0: stop, 1: forward, 2: backward, 3: left, 4: right
         self.is_moving = False
         self.movement_timer = None
         
-        rospy.loginfo('DeviceShifu driver initialized')
+        # Initialize Flask app
+        self.app = Flask(__name__)
+        self.setup_routes()
+        
+        # Start HTTP server in a separate thread
+        self.http_thread = threading.Thread(target=self.run_http_server)
+        self.http_thread.daemon = True
+        self.http_thread.start()
+        
+        rospy.loginfo('DeviceShifu driver initialized with HTTP server on port %d', self.http_port)
 
-    def init_camera(self):
-        """Initialize camera"""
-        try:
-            self.cap = cv2.VideoCapture(0)
-            if self.cap.isOpened():
-                rospy.loginfo('Successfully connected to camera')
-                self.has_camera = True
-            else:
-                raise Exception("Failed to open camera")
-        except Exception as e:
-            rospy.logwarn(f'Camera initialization failed: {str(e)}')
-            rospy.loginfo('Using simulated image')
-            self.has_camera = False
-            self.cap = None
-
-    def publish_image(self):
-        """Publish image data"""
-        if self.has_camera:
-            # Use real camera
-            ret, frame = self.cap.read()
-            if ret:
-                try:
-                    msg = self.bridge.cv2_to_imgmsg(frame, encoding='bgr8')
-                    msg.header.stamp = rospy.Time.now()
-                    msg.header.frame_id = "camera_frame"
-                    self.image_pub.publish(msg)
-                    rospy.logdebug('Published real camera image')
-                except Exception as e:
-                    rospy.logerr(f'Failed to publish image: {str(e)}')
-        else:
-            # Publish simulated image
+    def setup_routes(self):
+        @self.app.route('/move', methods=['POST'])
+        def move():
             try:
-                # Create solid color image (#39c5bb)
-                image = np.zeros((480, 720, 3), dtype=np.uint8)
-                # Note: OpenCV uses BGR format
-                image[:] = [187, 197, 57]  # BGR format of #39c5bb
-                
-                msg = self.bridge.cv2_to_imgmsg(image, encoding='bgr8')
-                msg.header.stamp = rospy.Time.now()
-                msg.header.frame_id = "camera_frame"
-                self.image_pub.publish(msg)
+                data = request.get_json()
+                command = data.get('command')
+                if command is not None:
+                    self.current_command = int(command)
+                    self.is_moving = True
+                    
+                    if self.movement_timer:
+                        self.movement_timer.shutdown()
+                    
+                    self.movement_timer = rospy.Timer(rospy.Duration(0.1), self.movement_callback)
+                    return jsonify({'status': 'success', 'command': command})
+                else:
+                    return jsonify({'status': 'error', 'message': 'No command provided'}), 400
             except Exception as e:
-                rospy.logerr(f'Failed to publish simulated image: {str(e)}')
+                return jsonify({'status': 'error', 'message': str(e)}), 500
 
-    def command_callback(self, msg):
-        """Process control commands"""
-        self.current_command = msg.data
-        self.is_moving = True
-        
-        # Cancel existing timer if any
-        if self.movement_timer:
-            self.movement_timer.shutdown()
-        
-        # Create new timer for continuous movement
-        self.movement_timer = rospy.Timer(rospy.Duration(0.1), self.movement_callback)
-        
-        rospy.loginfo(f'Received command: {msg.data}')
+        @self.app.route('/stop', methods=['POST'])
+        def stop():
+            try:
+                self.current_command = 0
+                self.is_moving = False
+                if self.movement_timer:
+                    self.movement_timer.shutdown()
+                return jsonify({'status': 'success', 'message': 'Robot stopped'})
+            except Exception as e:
+                return jsonify({'status': 'error', 'message': str(e)}), 500
+
+        @self.app.route('/status', methods=['GET'])
+        def status():
+            return jsonify({
+                'status': 'success',
+                'is_moving': self.is_moving,
+                'current_command': self.current_command,
+                'linear_speed': self.linear_speed,
+                'angular_speed': self.angular_speed
+            })
+
+    def run_http_server(self):
+        self.app.run(host='0.0.0.0', port=self.http_port)
 
     def movement_callback(self, event):
         """Handle continuous movement"""
@@ -111,7 +90,6 @@ class DeviceShifuDriver:
             
         cmd = Twist()
         
-        # 确保所有字段都被正确设置
         cmd.linear.x = 0.0
         cmd.linear.y = 0.0
         cmd.linear.z = 0.0
@@ -152,13 +130,10 @@ class DeviceShifuDriver:
         """Run node"""
         try:
             while not rospy.is_shutdown():
-                self.publish_image()
-                self.rate.sleep()
+                time.sleep(0.1)
         except Exception as e:
             rospy.logerr(f'Error occurred: {str(e)}')
         finally:
-            if self.has_camera and self.cap is not None:
-                self.cap.release()
             if self.movement_timer:
                 self.movement_timer.shutdown()
 

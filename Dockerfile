@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     ros-noetic-cv-bridge \
     && rm -rf /var/lib/apt/lists/*
 
+RUN pip3 install flask 
 # 创建工作空间
 WORKDIR /catkin_ws/src
 COPY . /catkin_ws/src/
@@ -31,4 +32,4 @@ exec "$@"' > /entrypoint.sh && chmod +x /entrypoint.sh
 
 # 设置入口点
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["roslaunch", "deviceshifu_driver", "deviceshifu_driver.launch"] 
+CMD ["roslaunch", "deviceshifu_driver", "deviceshifu_driver.launch"]
