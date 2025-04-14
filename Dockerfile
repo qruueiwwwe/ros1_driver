@@ -20,6 +20,8 @@ RUN /bin/bash -c "source /opt/ros/noetic/setup.bash && catkin_make"
 ENV PYTHONPATH=/catkin_ws/devel/lib/python3/dist-packages:$PYTHONPATH
 ENV LD_LIBRARY_PATH=/catkin_ws/devel/lib:$LD_LIBRARY_PATH
 ENV ROS_PACKAGE_PATH=/opt/ros/noetic/share:/catkin_ws/src:$ROS_PACKAGE_PATH
+ENV ROS_MASTER_URI=http://192.168.31.101:11311
+ENV PATH=/opt/ros/noetic/bin:$PATH
 
 # 设置入口点
 ENTRYPOINT ["/bin/bash", "-c", "source /opt/ros/noetic/setup.bash && source /catkin_ws/devel/setup.bash && roslaunch deviceshifu_driver deviceshifu_driver.launch"] 

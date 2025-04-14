@@ -24,10 +24,15 @@ spec:
           privileged: true
         ports:
         - containerPort: 11311
+        - containerPort: 11312  # ROS slave port
         env:
         - name: ROS_MASTER_URI
           value: "http://192.168.31.101:11311"
         - name: ROS_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: ROS_HOSTNAME
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
@@ -60,4 +65,8 @@ spec:
   ports:
   - port: 11311
     targetPort: 11311
-  type: ClusterIP 
+    name: ros-master
+  - port: 11312
+    targetPort: 11312
+    name: ros-slave
+  type: NodePort  # 改为NodePort类型，使外部可以访问 
