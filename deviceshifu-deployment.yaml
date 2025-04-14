@@ -60,11 +60,11 @@ spec:
       - name: tty-acm0
         hostPath:
           path: /dev/ttyACM0
-          type: Socket
+          type: CharDevice
       - name: tty-acm1
         hostPath:
           path: /dev/ttyACM1
-          type: Socket
+          type: CharDevice
 ---
 apiVersion: v1
 kind: Service
