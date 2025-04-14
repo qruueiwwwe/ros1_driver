@@ -31,11 +31,11 @@ spec:
         - name: ROS_IP
           valueFrom:
             fieldRef:
-              fieldPath: status.hostIP
+              fieldPath: status.podIP
         - name: ROS_HOSTNAME
           valueFrom:
             fieldRef:
-              fieldPath: status.hostIP
+              fieldPath: status.podIP
         - name: PYTHONPATH
           value: "/opt/ros/noetic/lib/python3/dist-packages:/catkin_ws/devel/lib/python3/dist-packages"
         - name: LD_LIBRARY_PATH
