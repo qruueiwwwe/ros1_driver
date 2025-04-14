@@ -16,6 +16,7 @@ spec:
     spec:
       nodeSelector:
         cpu: arm
+      hostNetwork: true  # 使用主机网络
       containers:
       - name: deviceshifu-driver
         image: deviceshifu-driver:latest
@@ -29,13 +30,9 @@ spec:
         - name: ROS_MASTER_URI
           value: "http://192.168.31.101:11311"
         - name: ROS_IP
-          valueFrom:
-            fieldRef:
-              fieldPath: status.podIP
+          value: "192.168.31.101"  # 直接使用主机IP
         - name: ROS_HOSTNAME
-          valueFrom:
-            fieldRef:
-              fieldPath: status.podIP
+          value: "192.168.31.101"  # 直接使用主机IP
         - name: PYTHONPATH
           value: "/opt/ros/noetic/lib/python3/dist-packages"
         - name: LD_LIBRARY_PATH
