@@ -8,9 +8,6 @@ RUN apt-get update && apt-get install -y \
     ros-noetic-cv-bridge \
     && rm -rf /var/lib/apt/lists/*
 
-# 安装Python依赖
-RUN pip3 install pyserial
-
 # 创建工作空间
 WORKDIR /catkin_ws/src
 COPY . /catkin_ws/src/

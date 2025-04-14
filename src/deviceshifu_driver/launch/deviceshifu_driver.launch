@@ -2,11 +2,12 @@
   <!-- 加载参数文件 -->
   <rosparam command="load" file="$(find deviceshifu_driver)/config/driver_config.yaml" />
   
-  <!-- 启动小车底层驱动 -->
+  <!-- 启动小车底层驱动
   <include file="$(find turn_on_wheeltec_robot)/launch/turn_on_wheeltec_robot.launch" />
-  
+   -->
   <!-- 启动驱动节点 -->
   <node name="deviceshifu_driver" pkg="deviceshifu_driver" type="driver_node.py" output="screen">
+    <!-- 覆盖参数 -->
     <param name="linear_speed" value="0.2" />
     <param name="angular_speed" value="0.2" />
   </node>
