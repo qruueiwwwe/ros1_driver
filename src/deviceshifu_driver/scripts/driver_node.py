@@ -8,6 +8,7 @@ import time
 from flask import Flask, request, jsonify
 import threading
 import os
+import socket
 
 class DeviceShifuDriver:
     def __init__(self):
@@ -82,10 +83,21 @@ class DeviceShifuDriver:
             })
 
     def run_http_server(self):
-        # 获取容器IP地址
-        container_ip = os.environ.get('POD_IP', '0.0.0.0')
-        rospy.loginfo(f'Starting HTTP server on {container_ip}:{self.http_port}')
-        self.app.run(host=container_ip, port=self.http_port)
+        try:
+            # 获取容器IP地址
+            container_ip = os.environ.get('POD_IP', '0.0.0.0')
+            hostname = socket.gethostname()
+            local_ip = socket.gethostbyname(hostname)
+            
+            rospy.loginfo(f'Container IP: {container_ip}')
+            rospy.loginfo(f'Hostname: {hostname}')
+            rospy.loginfo(f'Local IP: {local_ip}')
+            rospy.loginfo(f'Starting HTTP server on 0.0.0.0:{self.http_port}')
+            
+            # 使用0.0.0.0确保服务器监听所有网络接口
+            self.app.run(host='0.0.0.0', port=self.http_port, debug=True, use_reloader=False)
+        except Exception as e:
+            rospy.logerr(f'Failed to start HTTP server: {str(e)}')
 
     def movement_callback(self, event):
         """Handle continuous movement"""
