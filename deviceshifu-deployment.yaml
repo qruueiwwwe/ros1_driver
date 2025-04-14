@@ -17,53 +17,58 @@ spec:
       nodeSelector:
         cpu: arm
       hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       containers:
-      - name: deviceshifu-driver
-        image: deviceshifu-driver:latest
-        imagePullPolicy: Never
-        securityContext:
-          privileged: true
-        ports:
-        - containerPort: 11311
-          hostPort: 11311
-        - containerPort: 11312
-          hostPort: 11312
-        env:
-        - name: ROS_MASTER_URI
-          value: "http://192.168.31.101:11311"
-        - name: ROS_IP
-          value: "192.168.31.101"
-        - name: ROS_HOSTNAME
-          value: "192.168.31.101"
-        - name: PYTHONPATH
-          value: "/opt/ros/noetic/lib/python3/dist-packages:/catkin_ws/devel/lib/python3/dist-packages"
-        - name: LD_LIBRARY_PATH
-          value: "/opt/ros/noetic/lib:/catkin_ws/devel/lib"
-        - name: ROS_ROOT
-          value: "/opt/ros/noetic/share/ros"
-        - name: ROS_PACKAGE_PATH
-          value: "/opt/ros/noetic/share:/catkin_ws/src"
-        - name: ROS_DISTRO
-          value: "noetic"
-        volumeMounts:
-        - name: config-volume
-          mountPath: /catkin_ws/src/deviceshifu_driver/config
-        - name: tty-acm0
-          mountPath: /dev/ttyACM0
-        - name: tty-acm1
-          mountPath: /dev/ttyACM1
+        - name: deviceshifu-driver
+          image: deviceshifu-driver:latest
+          imagePullPolicy: Never
+          securityContext:
+            privileged: true
+          ports:
+            - containerPort: 11311
+              hostPort: 11311
+            - containerPort: 11312
+              hostPort: 11312
+          env:
+            - name: ROS_MASTER_URI
+              value: "http://192.168.31.101:11311"
+            - name: ROS_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: ROS_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: PYTHONPATH
+              value: "/opt/ros/noetic/lib/python3/dist-packages:/catkin_ws/devel/lib/python3/dist-packages"
+            - name: LD_LIBRARY_PATH
+              value: "/opt/ros/noetic/lib:/catkin_ws/devel/lib"
+            - name: ROS_ROOT
+              value: "/opt/ros/noetic/share/ros"
+            - name: ROS_PACKAGE_PATH
+              value: "/opt/ros/noetic/share:/catkin_ws/src"
+            - name: ROS_DISTRO
+              value: "noetic"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /catkin_ws/src/deviceshifu_driver/config
+            - name: tty-acm0
+              mountPath: /dev/ttyACM0
+            - name: tty-acm1
+              mountPath: /dev/ttyACM1
       volumes:
-      - name: config-volume
-        configMap:
-          name: deviceshifu-config
-      - name: tty-acm0
-        hostPath:
-          path: /dev/ttyACM0
-          type: CharDevice
-      - name: tty-acm1
-        hostPath:
-          path: /dev/ttyACM1
-          type: CharDevice
+        - name: config-volume
+          configMap:
+            name: deviceshifu-config
+        - name: tty-acm0
+          hostPath:
+            path: /dev/ttyACM0
+            type: CharDevice
+        - name: tty-acm1
+          hostPath:
+            path: /dev/ttyACM1
+            type: CharDevice
 ---
 apiVersion: v1
 kind: Service
@@ -74,11 +79,10 @@ spec:
   selector:
     app: deviceshifu-driver
   ports:
-  - port: 11311
-    targetPort: 11311
-    name: ros-master
-  - port: 11312
-    targetPort: 11312
-    name: ros-slave
+    - port: 11311
+      targetPort: 11311
+      name: ros-master
+    - port: 11312
+      targetPort: 11312
+      name: ros-slave
   type: NodePort
-
