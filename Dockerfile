@@ -23,5 +23,12 @@ ENV ROS_PACKAGE_PATH=/opt/ros/noetic/share:/catkin_ws/src:$ROS_PACKAGE_PATH
 ENV ROS_MASTER_URI=http://192.168.31.101:11311
 ENV PATH=/opt/ros/noetic/bin:$PATH
 
+# 创建启动脚本
+RUN echo '#!/bin/bash\n\
+source /opt/ros/noetic/setup.bash\n\
+source /catkin_ws/devel/setup.bash\n\
+exec "$@"' > /entrypoint.sh && chmod +x /entrypoint.sh
+
 # 设置入口点
-ENTRYPOINT ["/bin/bash", "-c", "source /opt/ros/noetic/setup.bash && source /catkin_ws/devel/setup.bash && roslaunch deviceshifu_driver deviceshifu_driver.launch"] 
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["roslaunch", "deviceshifu_driver", "deviceshifu_driver.launch"] 
