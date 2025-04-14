@@ -29,6 +29,8 @@ spec:
               hostPort: 11311
             - containerPort: 11312
               hostPort: 11312
+            - containerPort: 5000
+              hostPort: 5000
           env:
             - name: ROS_MASTER_URI
               value: "http://192.168.31.101:11311"
@@ -40,6 +42,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
             - name: PYTHONPATH
               value: "/opt/ros/noetic/lib/python3/dist-packages:/catkin_ws/devel/lib/python3/dist-packages"
             - name: LD_LIBRARY_PATH

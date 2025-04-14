@@ -7,6 +7,7 @@ from std_msgs.msg import Int32
 import time
 from flask import Flask, request, jsonify
 import threading
+import os
 
 class DeviceShifuDriver:
     def __init__(self):
@@ -81,7 +82,10 @@ class DeviceShifuDriver:
             })
 
     def run_http_server(self):
-        self.app.run(host='0.0.0.0', port=self.http_port)
+        # 获取容器IP地址
+        container_ip = os.environ.get('POD_IP', '0.0.0.0')
+        rospy.loginfo(f'Starting HTTP server on {container_ip}:{self.http_port}')
+        self.app.run(host=container_ip, port=self.http_port)
 
     def movement_callback(self, event):
         """Handle continuous movement"""
