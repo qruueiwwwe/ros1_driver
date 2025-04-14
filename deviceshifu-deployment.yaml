@@ -16,7 +16,6 @@ spec:
     spec:
       nodeSelector:
         cpu: arm
-      hostNetwork: true  # 使用主机网络
       containers:
       - name: deviceshifu-driver
         image: deviceshifu-driver:latest
@@ -25,22 +24,26 @@ spec:
           privileged: true
         ports:
         - containerPort: 11311
-        - containerPort: 11312  # ROS slave port
+        - containerPort: 11312
         env:
         - name: ROS_MASTER_URI
           value: "http://192.168.31.101:11311"
         - name: ROS_IP
-          value: "192.168.31.101"  # 直接使用主机IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
         - name: ROS_HOSTNAME
-          value: "192.168.31.101"  # 直接使用主机IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
         - name: PYTHONPATH
-          value: "/opt/ros/noetic/lib/python3/dist-packages"
+          value: "/opt/ros/noetic/lib/python3/dist-packages:/catkin_ws/devel/lib/python3/dist-packages"
         - name: LD_LIBRARY_PATH
-          value: "/opt/ros/noetic/lib"
+          value: "/opt/ros/noetic/lib:/catkin_ws/devel/lib"
         - name: ROS_ROOT
           value: "/opt/ros/noetic/share/ros"
         - name: ROS_PACKAGE_PATH
-          value: "/opt/ros/noetic/share"
+          value: "/opt/ros/noetic/share:/catkin_ws/src"
         - name: ROS_DISTRO
           value: "noetic"
         volumeMounts:
@@ -78,5 +81,5 @@ spec:
   - port: 11312
     targetPort: 11312
     name: ros-slave
-  type: NodePort  # 改为NodePort类型，使外部可以访问 
+  type: NodePort
 
