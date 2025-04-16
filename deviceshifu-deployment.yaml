@@ -14,8 +14,6 @@ spec:
       labels:
         app: deviceshifu-driver
     spec:
-      nodeSelector:
-        cpu: arm
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       tolerations:
