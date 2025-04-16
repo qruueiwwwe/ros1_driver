@@ -22,7 +22,7 @@ spec:
         effect: "NoSchedule"
       containers:
         - name: deviceshifu-driver
-          image: deviceshifu-driver:latest
+          image: deviceshifu-driver:v1
           imagePullPolicy: Never
           securityContext:
             privileged: true
@@ -33,8 +33,6 @@ spec:
               hostPort: 11312
             - containerPort: 5000
               hostPort: 5000
-            - containerPort: 1883
-              hostPort: 1883
           env:
             - name: ROS_MASTER_URI
               value: "http://192.168.31.101:11311"
@@ -50,10 +48,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-            - name: MQTT_BROKER_HOST
-              value: "localhost"
-            - name: MQTT_BROKER_PORT
-              value: "1883"
             - name: PYTHONPATH
               value: "/opt/ros/noetic/lib/python3/dist-packages:/catkin_ws/devel/lib/python3/dist-packages"
             - name: LD_LIBRARY_PATH
@@ -99,7 +93,4 @@ spec:
     - port: 11312
       targetPort: 11312
       name: ros-slave
-    - port: 1883
-      targetPort: 1883
-      name: mqtt
   type: NodePort
