@@ -18,3 +18,17 @@ data:
       
       # Simulation Image Parameters
       sim_image_color: [187, 197, 57]  # BGR format of #39c5bb 
+      
+      # MQTT Configuration
+      mqtt:
+        broker_host: "localhost"
+        broker_port: 1883
+        topics:
+          - name: "cmd_vel"
+            type: "twist"
+          - name: "imu"
+            type: "imu"
+          - name: "power_voltage"
+            type: "float32"
+          - name: "camera/rgb/image_raw/compressed"
+            type: "compressed_image"

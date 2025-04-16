@@ -3,12 +3,14 @@
 
 import rospy
 from geometry_msgs.msg import Twist
-from std_msgs.msg import Int32
+from std_msgs.msg import Int32, Float32
+from sensor_msgs.msg import Imu
 import time
 from flask import Flask, request, jsonify
 import threading
 import os
 import socket
+import json
 
 class DeviceShifuDriver:
     def __init__(self):
@@ -30,6 +32,18 @@ class DeviceShifuDriver:
         self.is_moving = False
         self.movement_timer = None
         
+        # Initialize sensor data
+        self.sensor_data = {
+            'imu': None,
+            'power_voltage': None,
+            'imu_low': None
+        }
+        
+        # Create subscribers for sensor data
+        self.imu_sub = rospy.Subscriber('/imu', Imu, self.imu_callback)
+        self.power_voltage_sub = rospy.Subscriber('/PowerVoltage', Float32, self.power_voltage_callback)
+        self.imu_low_sub = rospy.Subscriber('/imu_low', Imu, self.imu_low_callback)
+        
         # Initialize Flask app
         self.app = Flask(__name__)
         self.setup_routes()
@@ -40,6 +54,52 @@ class DeviceShifuDriver:
         self.http_thread.start()
         
         rospy.loginfo('DeviceShifu driver initialized with HTTP server on port %d', self.http_port)
+
+    def imu_callback(self, msg):
+        """Callback for IMU data"""
+        self.sensor_data['imu'] = {
+            'orientation': {
+                'x': msg.orientation.x,
+                'y': msg.orientation.y,
+                'z': msg.orientation.z,
+                'w': msg.orientation.w
+            },
+            'angular_velocity': {
+                'x': msg.angular_velocity.x,
+                'y': msg.angular_velocity.y,
+                'z': msg.angular_velocity.z
+            },
+            'linear_acceleration': {
+                'x': msg.linear_acceleration.x,
+                'y': msg.linear_acceleration.y,
+                'z': msg.linear_acceleration.z
+            }
+        }
+
+    def imu_low_callback(self, msg):
+        """Callback for low frequency IMU data"""
+        self.sensor_data['imu_low'] = {
+            'orientation': {
+                'x': msg.orientation.x,
+                'y': msg.orientation.y,
+                'z': msg.orientation.z,
+                'w': msg.orientation.w
+            },
+            'angular_velocity': {
+                'x': msg.angular_velocity.x,
+                'y': msg.angular_velocity.y,
+                'z': msg.angular_velocity.z
+            },
+            'linear_acceleration': {
+                'x': msg.linear_acceleration.x,
+                'y': msg.linear_acceleration.y,
+                'z': msg.linear_acceleration.z
+            }
+        }
+
+    def power_voltage_callback(self, msg):
+        """Callback for power voltage data"""
+        self.sensor_data['power_voltage'] = msg.data
 
     def setup_routes(self):
         @self.app.route('/move', methods=['POST'])
@@ -79,7 +139,32 @@ class DeviceShifuDriver:
                 'is_moving': self.is_moving,
                 'current_command': self.current_command,
                 'linear_speed': self.linear_speed,
-                'angular_speed': self.angular_speed
+                'angular_speed': self.angular_speed,
+                'sensor_data': self.sensor_data
+            })
+
+        @self.app.route('/sensors', methods=['GET'])
+        def sensors():
+            """Get all sensor data"""
+            return jsonify({
+                'status': 'success',
+                'sensor_data': self.sensor_data
+            })
+
+        @self.app.route('/imu', methods=['GET'])
+        def imu():
+            """Get IMU data"""
+            return jsonify({
+                'status': 'success',
+                'imu_data': self.sensor_data['imu']
+            })
+
+        @self.app.route('/power_voltage', methods=['GET'])
+        def power_voltage():
+            """Get power voltage data"""
+            return jsonify({
+                'status': 'success',
+                'voltage': self.sensor_data['power_voltage']
             })
 
     def run_http_server(self):

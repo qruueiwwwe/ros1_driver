@@ -1,8 +1,0 @@
-prefix=/home/wheeltec/driver/ros1_driver/devel
-
-Name: deviceshifu_driver
-Description: Description of deviceshifu_driver
-Version: 0.0.1
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: rospy geometry_msgs sensor_msgs std_msgs cv_bridge

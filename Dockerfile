@@ -6,9 +6,10 @@ RUN apt-get update && apt-get install -y \
     python3-opencv \
     curl \
     ros-noetic-cv-bridge \
+    mosquitto-clients \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install flask 
+RUN pip3 install flask paho-mqtt pyyaml opencv-python numpy
 # 创建工作空间
 WORKDIR /catkin_ws/src
 COPY . /catkin_ws/src/
