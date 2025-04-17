@@ -22,6 +22,12 @@ class DeviceShifuDriver:
         self.angular_speed = rospy.get_param('~angular_speed', 0.2)
         self.http_port = rospy.get_param('~http_port', 5000)
         
+        # 添加速度限制
+        self.max_linear_speed = 1.0
+        self.min_linear_speed = 0.1
+        self.max_angular_speed = 0.5
+        self.min_angular_speed = 0.1
+        
         rospy.loginfo(f'Initialized with speeds - Linear: {self.linear_speed}, Angular: {self.angular_speed}')
         
         # Create publishers
@@ -107,19 +113,78 @@ class DeviceShifuDriver:
             try:
                 data = request.get_json()
                 command = data.get('command')
+                # 获取可选的速度参数
+                linear_speed = data.get('linear_speed')
+                angular_speed = data.get('angular_speed')
+                
                 if command is not None:
                     self.current_command = int(command)
                     self.is_moving = True
+                    
+                    # 如果提供了速度参数，更新速度
+                    if linear_speed is not None:
+                        self.linear_speed = max(min(float(linear_speed), self.max_linear_speed), self.min_linear_speed)
+                    if angular_speed is not None:
+                        self.angular_speed = max(min(float(angular_speed), self.max_angular_speed), self.min_angular_speed)
                     
                     if self.movement_timer:
                         self.movement_timer.shutdown()
                     
                     self.movement_timer = rospy.Timer(rospy.Duration(0.1), self.movement_callback)
-                    return jsonify({'status': 'success', 'command': command})
+                    return jsonify({
+                        'status': 'success', 
+                        'command': command,
+                        'current_speeds': {
+                            'linear': self.linear_speed,
+                            'angular': self.angular_speed
+                        }
+                    })
                 else:
                     return jsonify({'status': 'error', 'message': 'No command provided'}), 400
             except Exception as e:
                 return jsonify({'status': 'error', 'message': str(e)}), 500
+
+        @self.app.route('/speed', methods=['POST'])
+        def set_speed():
+            try:
+                data = request.get_json()
+                linear_speed = data.get('linear_speed')
+                angular_speed = data.get('angular_speed')
+                
+                if linear_speed is not None:
+                    self.linear_speed = max(min(float(linear_speed), self.max_linear_speed), self.min_linear_speed)
+                if angular_speed is not None:
+                    self.angular_speed = max(min(float(angular_speed), self.max_angular_speed), self.min_angular_speed)
+                
+                return jsonify({
+                    'status': 'success',
+                    'current_speeds': {
+                        'linear': self.linear_speed,
+                        'angular': self.angular_speed
+                    }
+                })
+            except Exception as e:
+                return jsonify({'status': 'error', 'message': str(e)}), 500
+
+        @self.app.route('/speed', methods=['GET'])
+        def get_speed():
+            return jsonify({
+                'status': 'success',
+                'current_speeds': {
+                    'linear': self.linear_speed,
+                    'angular': self.angular_speed
+                },
+                'speed_limits': {
+                    'linear': {
+                        'min': self.min_linear_speed,
+                        'max': self.max_linear_speed
+                    },
+                    'angular': {
+                        'min': self.min_angular_speed,
+                        'max': self.max_angular_speed
+                    }
+                }
+            })
 
         @self.app.route('/stop', methods=['POST'])
         def stop():
@@ -128,6 +193,17 @@ class DeviceShifuDriver:
                 self.is_moving = False
                 if self.movement_timer:
                     self.movement_timer.shutdown()
+                
+                # 发送停止命令到ROS话题
+                cmd = Twist()
+                cmd.linear.x = 0.0
+                cmd.linear.y = 0.0
+                cmd.linear.z = 0.0
+                cmd.angular.x = 0.0
+                cmd.angular.y = 0.0
+                cmd.angular.z = 0.0
+                self.cmd_vel_pub.publish(cmd)
+                
                 return jsonify({'status': 'success', 'message': 'Robot stopped'})
             except Exception as e:
                 return jsonify({'status': 'error', 'message': str(e)}), 500
