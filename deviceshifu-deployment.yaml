@@ -16,9 +16,6 @@ spec:
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
-      initContainers:
-      - name: pause-container
-        image: sha256:8d94e670ae981726f56f290339ef7af872b88d84c084773109ea113d863bdaab
       tolerations:
       - key: "node.kubernetes.io/disk-pressure"
         operator: "Exists"
